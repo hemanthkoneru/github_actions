@@ -1,1 +1,1 @@
-# GitHub Actions Practice
+# github_actions
