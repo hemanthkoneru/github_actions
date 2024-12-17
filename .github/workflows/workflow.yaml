@@ -18,5 +18,5 @@ jobs:
     
       - name: running a multi line scripts
         run: 
-            echo Add other actions to the  build,
-            echo test and deploy the project.
+            echo Adding other actions to the  build like,
+            echo test and deploying the project.
