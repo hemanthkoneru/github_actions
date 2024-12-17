@@ -17,7 +17,7 @@ jobs:
         run: echo Hello World!
     
       - name: running a multi line scripts
-        run: 
+        run: |
             echo Adding other actions to the  build like,
             echo test and deploying the project 
             echo added this line from local.
