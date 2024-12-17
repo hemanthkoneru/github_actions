@@ -21,3 +21,17 @@ jobs:
             echo Adding other actions to the  build like,
             echo test and deploying the project 
             echo added this line from local.
+
+  build1:
+    runs-on: ubuntu-latest  #[on which machine we need to run this job. If we recollect, in Jenkins we will be running the jobs on slave machines. SImilalry here also we need to specify where to run our job. But in GitHub_Actions, the jobs will be executed on Docker_container]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: running a single line script
+        run: echo Hello World!
+
+      - name: running a multi line scripts
+        run: |
+            echo Add other actions to the  build2,
+            echo test and deploy the project.
