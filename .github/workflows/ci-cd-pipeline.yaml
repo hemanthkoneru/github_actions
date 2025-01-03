@@ -2,41 +2,42 @@ name: Python Flask App Build and Deploy to EC2 Instance
 
 on:
   push:
-       branches:[ "main" ]
+    branches: 
+      - "main"
+
 jobs:
   build:
     runs-on: ubuntu-latest
-       
+
     steps:
-    - uses: actions/checkout@v4  
-	
-    - name: Setup Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
+      - uses: actions/checkout@v4
 
-    - name: Install Python modules
-      run: pip install -r requirements.txt   
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
 
-    - name: Run unit test cases
-      run: python tests.py
+      - name: Install Python modules
+        run: pip install -r requirements.txt # Pre-requisites listed in requirements.txt
 
-    - name: Build the Docker image
-      run: docker build . –-file Dockerfile --tag my-flask-app:latest  #(building docker image)
+      - name: Run unit test cases
+        run: python tests.py
 
-    - name: "Configure AWS Credentials" 
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-region: ${{secrets.aws-region}}
-        aws-access-key-id: ${{secrets.aws-access-key-id}}
-	aws-secret-access-key: ${{secrets.aws-secret-access-key}}
-  
-    - name:Amazon ECR "Login" Action for GitHub Actions
-      uses:aws-actions/amazon-ecr-login@v2
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag my-flask-app:latest
 
-    - name:Pushing the docker image to ECR
-      run:|
-        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 886436960307.dkr.ecr.us-east-1.amazonaws.com #(Retrieve an authentication token and authenticate your Docker client to your registry)
-	docker tag my-flask-app:latest 886436960307.dkr.ecr.us-east-1.amazonaws.com/my-flask-app:latest #(After the build completes, tag your image so you can push the image to this repository)
-        docker push 886436960307.dkr.ecr.us-east-1.amazonaws.com/my-flask-app:latest #(to push this image to your newly created AWS repository)
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.aws-region }}
+          aws-access-key-id: ${{ secrets.aws-access-key-id }}
+          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
 
+      - name: Amazon ECR login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Push Docker image to ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 886436960307.dkr.ecr.us-east-1.amazonaws.com
+          docker tag my-flask-app:latest 886436960307.dkr.ecr.us-east-1.amazonaws.com/my-flask-app:latest
+          docker push 886436960307.dkr.ecr.us-east-1.amazonaws.com/my-flask-app:latest
