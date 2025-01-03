@@ -41,6 +41,7 @@ jobs:
          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 886436960307.dkr.ecr.us-east-1.amazonaws.com
          docker tag my-flask-app:latest 886436960307.dkr.ecr.us-east-1.amazonaws.com/my-flask-app:latest
          docker push 886436960307.dkr.ecr.us-east-1.amazonaws.com/my-flask-app:latest
+
     - name: Action-SSH
       uses: tiyee/action-ssh@v1.0.1
       with:
