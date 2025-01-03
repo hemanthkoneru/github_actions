@@ -1,42 +1,44 @@
-name: flask app ci cd pipeline
+name: Python Flask App Build and Deploy to EC2 Instance
 
 on:
-    push:
+  push:
        branches:[ "main" ]
-    jobs:
-       steps:
-        - uses: actions/checkout@v4  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+       
+    steps:
+    - uses: actions/checkout@v4  
 	
-		
-        - name: Setup Python 3.10
-          uses: actions/setup-python@v3
-          with:
-                python-version: “3.10”
+    - name: Setup Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: “3.10”
 
-        - name: Install Python modules
-          run: pip install -r requirements.txt   #(we have specified all the pre-requisites to be installed in requirments.txt file)  
+    - name: Install Python modules
+      run: pip install -r requirements.txt   #(we have specified all the pre-requisites to be installed in requirments.txt file)  
 
-        - name: Run unit test cases
-          run: python tests.py
+    - name: Run unit test cases
+      run: python tests.py
 
-        - name: Build the Docker image
-          run: docker build . –-file Dockerfile --tag my-image-name:$(Date+%s):version  #(building docker image)
+    - name: Build the Docker image
+      run: docker build . –-file Dockerfile --tag my-flask-app:latest  #(building docker image)
 
-        - name: "Configure AWS Credentials" #( to upload the docker image to ecr, first we need to connect to the aws by using access key Id & Secret Access Key. Below is the action we use for this purpose) 
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-             aws-region: ${{secrets.aws-region}}   # AWS Region, e.g. us-east-1
-             aws-access-key-id: ${{secrets.aws-access-key-id}}   # (for security      reason we don’t define access-key & secret-key in this workflow. Instead in GitHub repository choose “security” tab  we have “Secrets & Variables” towards right side choose “actions” options under it we have “envrmnt secrets” & “Repo secrets” choose repo secrets and add those secrets) 
-             aws-secret-access-key: ${{secrets.aws-secret-access-key}} #(required if aws-access-key-id is provided)  
+    - name: "Configure AWS Credentials" #( to upload the docker image to ecr, first we need to connect to the aws by using access key Id & Secret Access Key. Below is the action we use for this purpose) 
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: ${{secrets.aws-region}}   # AWS Region, e.g. us-east-1
+        aws-access-key-id: ${{secrets.aws-access-key-id}}   # (for security      reason we don’t define access-key & secret-key in this workflow. Instead in GitHub repository choose “security” tab  we have “Secrets & Variables” towards right side choose “actions” options under it we have “envrmnt secrets” & “Repo secrets” choose repo secrets and add those secrets) 
+        aws-secret-access-key: ${{secrets.aws-secret-access-key}} #(required if aws-access-key-id is provided)  
+  
+    - name: Amazon ECR “login” action for GitHub Actions
+      uses: aws-actions/amazon-ecr-login@v2 #(login to AWS ECR)
 
-        - name: Amazon ECR “login” action for GitHub Actions
-          uses: aws-actions/amazon-ecr-login@v2 #(login to AWS ECR)
+    - name: Pushing the docker image to ECR
+      run: |
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 886436960307.dkr.ecr.us-east-1.amazonaws.com #(Retrieve an authentication token and authenticate your Docker client to your registry)
 
-        - name: Pushing the docker image to ECR
-          run: |
-            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 886436960307.dkr.ecr.us-east-1.amazonaws.com #(Retrieve an authentication token and authenticate your Docker client to your registry)
+	docker tag my-flask-app:latest 886436960307.dkr.ecr.us-east-1.amazonaws.com/my-flask-app:latest #(After the build completes, tag your image so you can push the image to this repository)
 
-            docker tag my-flask-app:latest 886436960307.dkr.ecr.us-east-1.amazonaws.com/my-flask-app:latest #(After the build completes, tag your image so you can push the image to this repository)
-
-            docker push 886436960307.dkr.ecr.us-east-1.amazonaws.com/my-flask-app:latest #(to push this image to your newly created AWS repository)
+        docker push 886436960307.dkr.ecr.us-east-1.amazonaws.com/my-flask-app:latest #(to push this image to your newly created AWS repository)
 
