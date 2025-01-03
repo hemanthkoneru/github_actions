@@ -2,7 +2,7 @@ name: Python Flask App Build and Deploy to EC2 Instance
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 jobs:
 
