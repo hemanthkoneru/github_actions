@@ -38,7 +38,7 @@ jobs:
 
     - name: Push Docker image to ECR
       run: |
-         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 886436960307.dkr.ecr.us-east-1.amazonaws.com
+         aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin 886436960307.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
          docker tag my-flask-app:latest 886436960307.dkr.ecr.us-east-1.amazonaws.com/my-flask-app:latest
          docker push 886436960307.dkr.ecr.us-east-1.amazonaws.com/my-flask-app:latest
 
@@ -48,4 +48,8 @@ jobs:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USER }}
         privateKey: ${{ secrets.EC2_PRIVATEKEY }}
-        command: docker pull 886436960307.dkr.ecr.us-east-1.amazonaws.com/my-flask-app:latest && docker run -d -p 80:8080 --name my-flask-app 886436960307.dkr.ecr.us-east-1.amazonaws.com/my-flask-app:latest
+        command: |
+          docker pull 886436960307.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-flask-app:latest && \
+          docker stop my-flask-app || true && \
+          docker rm my-flask-app || true && \
+          docker run -d -p 80:8080 --name my-flask-app 886436960307.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-flask-app:latest
